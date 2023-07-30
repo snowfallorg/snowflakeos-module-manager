@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>@app-id@</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>SnowflakeOS Module Manager</name>
+  <summary>Configure and manage system modules.</summary>
+  <description>
+    <p>A libadwaita application for configuring and managing Snowfall modules on a SnowflakeOS system.</p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/vlinkz/nix-software-center/main/data/screenshots/frontpage-light.png</image>
+      <caption>Main window</caption>
+    </screenshot>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/vlinkz/nix-software-center/main/data/screenshots/application-light.png</image>
+      <caption>Application Page</caption>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://github.com/snowflakelinux/snowflakeos-module-manager</url>
+  <url type="bugtracker">https://github.com/snowflakelinux/snowflakeos-module-manager/issues</url>
+  <developer_name>Victor Fuentes</developer_name>
+  <update_contact>vlinkz@snowflakeos.org</update_contact>
+  <translation type="gettext">@gettext-package@</translation>
+  <launchable type="desktop-id">@app-id@.desktop</launchable>
+</component>
