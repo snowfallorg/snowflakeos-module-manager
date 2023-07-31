@@ -19,6 +19,10 @@ use super::{
 pub struct ModuleOptionModel {
     data: OptionData,
     value: Option<ModuleOption>,
+
+    label: String,
+    subtitle: String,
+
     enumoptions: Option<HashMap<u32, ModuleOption>>,
     #[tracker::no_eq]
     list_option_factory: FactoryVecDeque<ListOptionModel>,
@@ -41,6 +45,7 @@ pub enum ModuleOptionOutput {
     SetOption(String, ModuleOption),
 }
 
+#[derive(Debug)]
 pub struct ModuleOptionInit {
     pub data: OptionData,
     pub value: Option<ModuleOption>,
@@ -63,8 +68,9 @@ impl FactoryComponent for ModuleOptionModel {
                     adw::PreferencesGroup {
                         adw::ActionRow {
                             set_hexpand: true,
-                            set_title: &self.data.label,
-                            set_subtitle: self.data.description.as_deref().unwrap_or_default(),
+                            set_title: &self.label,
+                            #[watch]
+                            set_subtitle: &self.subtitle,
                             add_suffix = & gtk::Switch {
                                 set_halign: gtk::Align::End,
                                 set_valign: gtk::Align::Center,
@@ -90,8 +96,9 @@ impl FactoryComponent for ModuleOptionModel {
                     adw::PreferencesGroup {
                         adw::ActionRow {
                             set_hexpand: true,
-                            set_title: &self.data.label,
-                            set_subtitle: self.data.description.as_deref().unwrap_or_default(),
+                            set_title: &self.label,
+                            #[watch]
+                            set_subtitle: &self.subtitle,
                             add_suffix = &gtk::Entry {
                                 set_halign: gtk::Align::End,
                                 set_valign: gtk::Align::Center,
@@ -115,8 +122,9 @@ impl FactoryComponent for ModuleOptionModel {
                 OptionType::Enum { .. } => {
                     adw::PreferencesGroup {
                         adw::ComboRow {
-                            set_title: &self.data.label,
-                            set_subtitle: self.data.description.as_deref().unwrap_or_default(),
+                            set_title: &self.label,
+                            #[watch]
+                            set_subtitle: &self.subtitle,
                             set_model: (match &self.data.op_type {
                                 OptionType::Enum { options, .. } => {
                                     let mut model = vec![];
@@ -160,8 +168,9 @@ impl FactoryComponent for ModuleOptionModel {
                     adw::PreferencesGroup {
                         #[local_ref]
                         list_option_exapnder -> adw::ExpanderRow {
-                            set_title: &self.data.label,
-                            set_subtitle: self.data.description.as_deref().unwrap_or_default(),
+                            set_title: &self.label,
+                            #[watch]
+                            set_subtitle: &self.subtitle,
                             set_expanded: true,
                             add_action = &gtk::Box {
                                 add_css_class: "linked",
@@ -217,8 +226,10 @@ impl FactoryComponent for ModuleOptionModel {
             list_option_factory_guard.drop();
         }
         Self {
-            data: init.data,
+            data: init.data.clone(),
             value: init.value,
+            label: init.data.label.to_string(),
+            subtitle: init.data.description.clone().unwrap_or_default(),
             enumoptions: None,
             list_option_factory,
             entryerror: false,
