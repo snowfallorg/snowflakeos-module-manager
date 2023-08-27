@@ -201,7 +201,7 @@ impl SimpleComponent for RebuildModel {
                         "--path",
                         &self.modulepath.to_string_lossy(),
                         "--",
-                        "build",
+                        "switch",
                         "--flake",
                         &self.flakepath.to_string_lossy(),
                     ],

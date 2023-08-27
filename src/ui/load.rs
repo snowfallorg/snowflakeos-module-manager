@@ -24,9 +24,8 @@ pub fn load() -> Result<LoadOutput> {
         .flake
         .as_ref()
         .map(PathBuf::from)
-        .and_then(|x| x.parent().map(|x| x.to_path_buf()))
         .expect("Failed to get flake path");
-    let modules = modules::load::loadmodules(&flakepath);
+    let modules = modules::load::loadmodules(&flakepath)?;
     let current_config =
         getcurrentoptions(&config, &modules).expect("Failed to load current module configuration");
     Ok(LoadOutput {
@@ -50,9 +49,8 @@ pub fn reload(config: &NixDataConfig) -> Result<ReloadOutput> {
         .flake
         .as_ref()
         .map(PathBuf::from)
-        .and_then(|x| x.parent().map(|x| x.to_path_buf()))
         .expect("Failed to get flake path");
-    let modules = modules::load::loadmodules(&flakepath);
+    let modules = modules::load::loadmodules(&flakepath)?;
     let current_config = getcurrentoptions(config, &modules)
         .expect("Failed to load current module configuration");
     let moduleconfig = loadmoduleconfig(config).expect("Failed to load module config");

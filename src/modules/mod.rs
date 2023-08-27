@@ -16,6 +16,7 @@ pub struct Module {
 pub struct ModuleData {
     pub name: String,
     pub id: String,
+    pub flake: String,
     pub description: Option<String>,
     pub version: String,
     pub options: Vec<OptionData>,

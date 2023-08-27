@@ -7,50 +7,69 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::modules::OptionType;
+use crate::modules::{ModuleData, OptionType};
 
 use super::{Module, ModuleOption};
 
-pub fn loadmodules(basedir: &Path) -> Vec<Module> {
+pub fn loadmodules(flakepath: &Path) -> Result<Vec<Module>> {
     // Iterate over all directories and subdirectories in the `basedir/modules` directory
     // and return a vector of `Module`s based on finding a `default.nix` file in the directory.
 
     let mut modules: Vec<Module> = Vec::new();
-    let modulepath = basedir.join("modules");
+    let modulepath = Path::new("/etc/snowflakeos-modules");
+
+    let flakefile = fs::read_to_string(flakepath)?;
+    let installed_modules =
+        nix_editor::read::getarrvals(&flakefile, "outputs.systems.modules.nixos")?;
 
     for entry in walkdir::WalkDir::new(modulepath).into_iter().flatten() {
         let path = entry.path();
         if path.is_dir() {
-            let defaultnix = path.join("default.nix");
-            if defaultnix.exists() {
-                let moduleconfig = path.join("module.yml");
-                let config = moduleconfig
-                    .exists()
-                    .then(|| {
-                        fs::read_to_string(&moduleconfig)
-                            .ok()
-                            .and_then(|config_str| serde_yaml::from_str(&config_str).unwrap())
-                    })
-                    .flatten();
-                debug!("Loading config: {:#?}", config);
+            let moduleconfig = path.join("module.yml");
+            if moduleconfig.exists() {
+                // Path from /etc/snowflakeos-modules joined by '/'
+                let mut moduleid = path
+                    .strip_prefix(modulepath)
+                    .unwrap_or(path)
+                    .iter()
+                    .map(|x| x.to_string_lossy())
+                    .collect::<Vec<_>>()
+                    .join("/");
+                if moduleid.contains("/") {
+                    moduleid = format!("\"{}\"", moduleid);
+                }
 
-                if let Some(config) = config {
-                    let module = Module {
-                        name: path
-                            .file_name()
-                            .unwrap_or_default()
-                            .to_string_lossy()
-                            .to_string(),
-                        path: path.to_path_buf(),
-                        config,
-                    };
-                    modules.push(module);
+                if let Some(config_text) = fs::read_to_string(&moduleconfig)
+                    .ok()
+                    .and_then(|config_str| serde_yaml::from_str(&config_str).ok())
+                {
+                    // let moduleconfig = path.join("module.yml");
+                    let config: Option<ModuleData> =
+                        moduleconfig.exists().then(|| config_text).flatten();
+                    debug!("Loading config: {:#?}", config);
+
+                    if let Some(config) = config {
+                        let module = Module {
+                            name: path
+                                .file_name()
+                                .unwrap_or_default()
+                                .to_string_lossy()
+                                .to_string(),
+                            path: path.to_path_buf(),
+                            config: config.clone(),
+                        };
+                        if installed_modules
+                            .contains(&format!("{}.nixosModules.{}", config.flake, moduleid))
+                        {
+                            modules.push(module);
+                        }
+                    }
                 }
             }
         }
     }
     modules.sort_by(|a, b| a.name.cmp(&b.name));
-    modules
+    Ok(modules)
 }
 
 /**
@@ -85,6 +104,7 @@ pub fn getcurrentoptions(
         .context("systemconfig parent")?
         .join("modules.nix");
     let moduletext = fs::read_to_string(modulesnix).context("modules.nix")?;
+    println!("moduletext: {:#?}", moduletext);
 
     let options = modules
         .iter()
@@ -94,6 +114,7 @@ pub fn getcurrentoptions(
 
     let mut output = HashMap::new();
     for option in options {
+        println!("option: {:#?}", option);
         let attribute = option.id;
         let string_value = nix_editor::read::readvalue(&moduletext, &attribute);
 
@@ -120,11 +141,16 @@ pub fn getcurrentoptions(
                         );
                     }
                 }
-                OptionType::Enum { .. } => {
+                OptionType::Enum { options, .. } => {
                     output.insert(
                         attribute,
-                        ModuleOption::Text {
+                        ModuleOption::Enum {
                             value: string_value.to_string(),
+                            pretty: if let Some(pretty) = options.get(&string_value) {
+                                pretty.to_string()
+                            } else {
+                                string_value.to_string()
+                            },
                         },
                     );
                 }
@@ -140,5 +166,6 @@ pub fn getcurrentoptions(
             }
         }
     }
+    println!("output: {:#?}", output);
     Ok(output)
 }
