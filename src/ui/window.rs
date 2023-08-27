@@ -273,6 +273,8 @@ impl SimpleComponent for AppModel {
                     }
                     modulecardsfactory_guard.drop();
                     self.main_leaflet.set_visible_child(&self.main_box);
+                    self.modulepage
+                        .emit(ModulePageInput::ShowApply(false));
                 }
                 Err(e) => {
                     self.error_dialog.emit(ErrorDialogInput::Show(
