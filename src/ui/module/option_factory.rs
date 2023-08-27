@@ -194,13 +194,9 @@ impl FactoryComponent for ModuleOptionModel {
                                 model.push((k.as_str(), v.as_str()));
                             }
                             model.sort_by(|a, b| a.1.cmp(b.1));
-                            println!("model: {:#?}", model);
-                            println!("value: {:#?}", self.value);
                             if let Some(ModuleOption::Enum { value, .. }) = &self.value {
-                                println!("value: {}", value);
                                 model.iter().position(|(k, _)| k == value).map(|x| x as u32).unwrap_or(0)
                             } else {
-                                println!("default: {}", default);
                                 model.iter().position(|(k, _)| k == default).map(|x| x as u32).unwrap_or(0)
                             }
                         },

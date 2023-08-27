@@ -43,7 +43,6 @@ pub fn loadmodules(flakepath: &Path) -> Result<Vec<Module>> {
                     .ok()
                     .and_then(|config_str| serde_yaml::from_str(&config_str).ok())
                 {
-                    // let moduleconfig = path.join("module.yml");
                     let config: Option<ModuleData> =
                         moduleconfig.exists().then(|| config_text).flatten();
                     debug!("Loading config: {:#?}", config);
@@ -104,7 +103,6 @@ pub fn getcurrentoptions(
         .context("systemconfig parent")?
         .join("modules.nix");
     let moduletext = fs::read_to_string(modulesnix).context("modules.nix")?;
-    println!("moduletext: {:#?}", moduletext);
 
     let options = modules
         .iter()
@@ -114,7 +112,6 @@ pub fn getcurrentoptions(
 
     let mut output = HashMap::new();
     for option in options {
-        println!("option: {:#?}", option);
         let attribute = option.id;
         let string_value = nix_editor::read::readvalue(&moduletext, &attribute);
 
@@ -166,6 +163,5 @@ pub fn getcurrentoptions(
             }
         }
     }
-    println!("output: {:#?}", output);
     Ok(output)
 }
