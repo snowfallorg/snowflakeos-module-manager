@@ -1,7 +1,8 @@
-{ pkgs ? import <nixpkgs> { }
-, lib ? import <nixpkgs/lib>
+{
+  pkgs ? import <nixpkgs> { },
+  ...
 }:
-pkgs.stdenv.mkDerivation rec {
+pkgs.stdenv.mkDerivation {
   pname = "snowflakeos-module-manager";
   version = "0.0.1";
 
@@ -14,21 +15,24 @@ pkgs.stdenv.mkDerivation rec {
     };
   };
 
-  nativeBuildInputs = with pkgs; [
-    appstream-glib
-    polkit
-    gettext
-    desktop-file-utils
-    meson
-    ninja
-    pkg-config
-    git
-    wrapGAppsHook4
-  ] ++ (with pkgs.rustPlatform; [
-    cargoSetupHook
-    cargo
-    rustc
-  ]);
+  nativeBuildInputs =
+    with pkgs;
+    [
+      appstream-glib
+      polkit
+      gettext
+      desktop-file-utils
+      meson
+      ninja
+      pkg-config
+      git
+      wrapGAppsHook4
+    ]
+    ++ (with pkgs.rustPlatform; [
+      cargoSetupHook
+      cargo
+      rustc
+    ]);
 
   buildInputs = with pkgs; [
     gdk-pixbuf
