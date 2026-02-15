@@ -39,7 +39,7 @@ pkgs.stdenv.mkDerivation rec {
     openssl
     vte-gtk4
     wayland
-    gnome.adwaita-icon-theme
+    adwaita-icon-theme
     desktop-file-utils
   ];
 }
