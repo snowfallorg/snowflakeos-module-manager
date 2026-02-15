@@ -1,26 +1,36 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, utils }:
-    utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs {
-          inherit system;
-        };
-      in
-      rec
-      {
-        packages = let
-          snowflakeos-module-manager = pkgs.callPackage ./default.nix {};
-        in {
-          inherit snowflakeos-module-manager;
-          default = snowflakeos-module-manager;
-        };
+  outputs =
+    { nixpkgs }:
+    let
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
+      forAllSystems =
+        fn:
+        nixpkgs.lib.genAttrs systems (
+          system:
+          fn (
+            import nixpkgs {
+              inherit system;
+              config.allowUnfree = true;
+            }
+          )
+        );
+    in
+    {
+      packages = forAllSystems (pkgs: rec {
+        snowflakeos-module-manager = pkgs.callPackage ./default.nix { };
+        default = snowflakeos-module-manager;
+      });
 
-        devShell = pkgs.mkShell {
+      devShell = forAllSystems (
+        pkgs:
+        pkgs.mkShell {
           buildInputs = with pkgs; [
             cargo
             clippy
@@ -44,6 +54,7 @@
             wrapGAppsHook4
           ];
           RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
-        };
-      });
+        }
+      );
+    };
 }
